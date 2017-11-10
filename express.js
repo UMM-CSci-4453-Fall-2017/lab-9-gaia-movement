@@ -1,3 +1,4 @@
+var sha256 = require('js-sha256').sha256;
 var express=require('express');
 mysql=require('mysql');
 var credentials=require('./credentials.json');
@@ -104,6 +105,24 @@ app.get("/removeItem", function(req, res){
     .then(function(results){ res.send(results);endPool;});
 });
 
+app.get("/login", function(req, res){
+    var userID = req.param('user');
+    var pass = sha256(req.param('pass'));
+    var checkPassSql = "SELECT * FROM " + db + ".users WHERE user=\"" + userID + "\" AND passwordHash=\"" + pass + "\";";
+    console.log("Before query");
+    query(checkPassSql).then(
+    function(results){
+	if(results !== null && results.length > 0){ 
+		var hid = Math.floor(Math.random() * 1000000000000000);
+		var cookieSql = "INSERT INTO " + db + ".cookies VALUES(" + userID + ", " + hid + ", ADDDATE(NOW(), INTERVAL 1 HOUR));";
+		query(cookieSql).then(function(){
+			res.cookie("creds", { user: userID, id: hid });
+			res.send();
+		});
+
+	}
+    });
+});
 
 // Your other API handlers go here!
 
