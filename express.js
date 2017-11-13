@@ -72,7 +72,9 @@ app.get("/buttons",function(req,res){
         if (results.length > 0){
             query(sql)
             .then(function(results){ res.send(results); endPool;})
-        }}
+        }else{
+            res.send();
+            }}
     );
 }); 
 
@@ -89,7 +91,9 @@ app.get("/click",function(req,res){
         if (results.length > 0){
             query(sql)
             .then(function(results){ res.send(results); endPool;})
-        }}
+        }else{
+            res.send();
+            }}
     );
 });
 
@@ -111,7 +115,9 @@ app.get("/getTrans", function(req, res){
             query(sqlMake)
             .then(query(sqlGet)
             .then(function(results){ res.send(results); endPool;}))
-        }}
+        }else{
+            res.send();
+            }}
     );
     
 });
@@ -131,6 +137,8 @@ app.get("/removeItem", function(req, res){
             query(updateSql)
             .then(query(deleteSql)
             .then(function(results){ res.send(results); endPool;}))
+        } else{
+            res.send();
         }}
     );
 

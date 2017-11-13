@@ -10,7 +10,12 @@
 <body ng-app="buttons">
 <div class="container-fluid" ng-controller="buttonCtrl">
     <h1>Cash Register (with buttons)</h1>
-    <div id="buttons"  >
+    <div id=login float="bottom" style="position: absolute; bottom: 0">
+        <form >
+        User <input type="text" name="user" id="user"> 
+        Password<input type="password" name="pass" id="pass">
+        <button ng-click="login($event)">Login</button></form></div>
+    <div id="buttons" >
        <div ng-repeat="button in buttons">
          <div style="position:absolute;left:{{button.left}}px;top:{{button.top}}px"><button id="{{button.buttonID}}" ng-click="buttonClick($event,'button.buttonID');" >{{button.label}}</button></div>
          </div>

@@ -13,11 +13,24 @@ function ButtonCtrl($scope,buttonApi){
    $scope.refreshTrans=refreshTrans;
    $scope.subOne = subOne;
    $scope.total = 0.0;
+   $scope.login = login;
 
    var loading = false;
 
    function isLoading(){
     return loading;
+   }
+
+   function login($event){
+	
+	var user = document.getElementById('user').value;
+	var pass = document.getElementById('pass').value;
+	
+	buttonApi.login(user, pass)
+	.success(function(data){
+		refreshTrans();
+		refreshButtons();})
+	.error(function(){});
    }
   function refreshButtons(){
     loading=true;
@@ -70,13 +83,8 @@ function buttonApi($http,apiUrl){
     },
     clickButton: function(id){
       var url = apiUrl+'/click?id='+id;
-//      console.log("Attempting with "+url);
       return $http.get(url); // Easy enough to do this way
     },
-//};};
-
-//function transApi($http,apiURL){
-//  return{
     getTrans: function(){
       var url = apiUrl + '/getTrans';
       return $http.get(url);
@@ -85,6 +93,10 @@ function buttonApi($http,apiUrl){
        var url = apiUrl+'/removeItem?id=' + id;
        console.log("attempting with url = " + url);
        return $http.get(url);
+    },
+    login: function(user, pass){
+	var url = apiUrl+'/login?user='+user+'&pass='+pass;
+	return $http.get(url);
     }
  };
 }
