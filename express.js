@@ -1,4 +1,4 @@
-var sha256 = require('js-sha256').sha256;
+var cookieParser = require('cookie-parser');
 var express=require('express');
 mysql=require('mysql');
 var credentials=require('./credentials.json');
@@ -51,9 +51,12 @@ var removeCol = function(ip){
 
 var checkCookie = function(req){
     var sql = "SELECT * FROM " + db + ".cookies WHERE hid=" + req.cookies.creds.id + ";";
-    return query(sql);
+    return query("CALL " + db + ".deleteCookies();").then(function(){
+        return query(sql);});
+    
 }
 
+app.use(cookieParser());
 app.use(express.static(__dirname + '/public'));
 
 app.get("/buttons",function(req,res){
@@ -63,9 +66,14 @@ app.get("/buttons",function(req,res){
 //             console.log(err);}
 //     res.send(rows);
 //  }})(res));
-  query(sql).then(function(results){ 
-    res.send(results); 
-    endPool; });
+
+  checkCookie(req)
+    .then( function(results){
+        if (results.length > 0){
+            query(sql)
+            .then(function(results){ res.send(results); endPool;})
+        }}
+    );
 }); 
 
 
@@ -76,7 +84,13 @@ app.get("/click",function(req,res){
   var sql = 'INSERT INTO ' + db + ".transaction_" + newIP + " values (" + id + ", 1) on duplicate key update quantity=quantity+1;";
   console.log("Attempting sql ->"+sql+"<-");
   
-  query(sql).then(function(results){ res.send(results); endPool;});
+    checkCookie(req)
+    .then( function(results){
+        if (results.length > 0){
+            query(sql)
+            .then(function(results){ res.send(results); endPool;})
+        }}
+    );
 });
 
 app.get("/getTrans", function(req, res){
@@ -110,10 +124,16 @@ app.get("/removeItem", function(req, res){
     var updateSql = "update " + tablename + " set quantity = quantity - 1 where ID = " + id + ";";
     var deleteSql = "delete from " + tablename + " where quantity <= 0;";
    // var SQL = updateSql + deleteSql;
+
     checkCookie(req)
-    .then(query(updateSql))
-    .then(query(deleteSql))
-    .then(function(results){ res.send(results);endPool;});
+    .then( function(results){
+        if (results.length > 0){
+            query(updateSql)
+            .then(query(deleteSql)
+            .then(function(results){ res.send(results); endPool;}))
+        }}
+    );
+
 });
 
 app.get("/login", function(req, res){
