@@ -48,6 +48,12 @@ var removeCol = function(ip){
 	}
 	return toReturn;
 };
+
+var checkCookie = function(req){
+    var sql = "SELECT * FROM " + db + ".cookies WHERE hid=" + req.cookies.creds.id + ";";
+    return query(sql);
+}
+
 app.use(express.static(__dirname + '/public'));
 
 app.get("/buttons",function(req,res){
@@ -85,10 +91,15 @@ app.get("/getTrans", function(req, res){
   var sqlGet = "select inventory.item, inventory.id, " + tableName + ".quantity, " + tableName + ".quantity * prices.prices AS total from benek020.inventory as inventory, " + tableName + ", benek020.prices as prices where inventory.id = " + tableName + ".ID and inventory.id = prices.id;";
 
 
-
-   query(sqlMake)
-   .then(query(sqlGet)
-   .then(function(results){ res.send(results); endPool;}));
+    checkCookie(req)
+    .then( function(results){
+        if (results.length > 0){
+            query(sqlMake)
+            .then(query(sqlGet)
+            .then(function(results){ res.send(results); endPool;}))
+        }}
+    );
+    
 });
 
 app.get("/removeItem", function(req, res){
@@ -99,22 +110,25 @@ app.get("/removeItem", function(req, res){
     var updateSql = "update " + tablename + " set quantity = quantity - 1 where ID = " + id + ";";
     var deleteSql = "delete from " + tablename + " where quantity <= 0;";
    // var SQL = updateSql + deleteSql;
-
-    query(updateSql)
+    checkCookie(req)
+    .then(query(updateSql))
     .then(query(deleteSql))
     .then(function(results){ res.send(results);endPool;});
 });
 
 app.get("/login", function(req, res){
     var userID = req.param('user');
-    var pass = sha256(req.param('pass'));
-    var checkPassSql = "SELECT * FROM " + db + ".users WHERE user=\"" + userID + "\" AND passwordHash=\"" + pass + "\";";
+    var pass = req.param('pass');
+   // var pass = sha256(req.param('pass'));
+    var checkPassSql = "SELECT * FROM " + db + ".users WHERE user=\"" + userID + "\" AND passwordHash=SHA2(\""+ pass + "\",256);";
     console.log("Before query");
+    console.log(checkPassSql);
     query(checkPassSql).then(
     function(results){
 	if(results !== null && results.length > 0){ 
 		var hid = Math.floor(Math.random() * 1000000000000000);
-		var cookieSql = "INSERT INTO " + db + ".cookies VALUES(" + userID + ", " + hid + ", ADDDATE(NOW(), INTERVAL 1 HOUR));";
+		var cookieSql = "INSERT INTO " + db + ".cookies VALUES(\"" + userID + "\", " + hid + ", ADDDATE(NOW(), INTERVAL 1 HOUR));";
+		console.log(cookieSql)
 		query(cookieSql).then(function(){
 			res.cookie("creds", { user: userID, id: hid });
 			res.send();
