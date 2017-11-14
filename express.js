@@ -82,15 +82,21 @@ app.get("/buttons",function(req,res){
 
 app.get("/click",function(req,res){
   var id = req.param('id');
-  var newIP = removeCol(req.ip);
-  var sql = 'INSERT INTO ' + db + ".transaction_" + newIP + " values (" + id + ", 1) on duplicate key update quantity=quantity+1;";
-  console.log("Attempting sql ->"+sql+"<-");
+//  var newIP = removeCol(req.ip);
+//  var sql = 'INSERT INTO ' + db + ".transaction_" + newIP + " values (" + id + ", 1) on duplicate key update quantity=quantity+1;";
+    var sql = "SELECT currentTransId FROM " + db + ".users WHERE user=\"" + req.cookies.creds.user + "\";";
+
+    console.log("Attempting sql ->"+sql+"<-");
   
     checkCookie(req)
     .then( function(results){
         if (results.length > 0){
             query(sql)
-            .then(function(results){ res.send(results); endPool;})
+	    .then(function(results){
+		var tid = results[0].currentTransId;
+		var insSql = "INSERT INTO " + db + ".button_pushes VALUES (" + id + ", NOW(), " + tid + ");";
+		query(insSql)
+            	.then(function(results){ res.send(results); endPool;})})
         }else{
             res.send();
             }}
@@ -98,23 +104,26 @@ app.get("/click",function(req,res){
 });
 
 app.get("/getTrans", function(req, res){
-  var ip = req.ip;
-  var newIP = removeCol(ip);
+//  var ip = req.ip;
+//  var newIP = removeCol(ip);
   //console.log(ip);
   //console.log(newIP);
-  var tableName = db + ".transaction_" + newIP;
-  var modelTable = db + ".transaction_model";
-  var sqlMake = "CREATE TABLE IF NOT EXISTS " + tableName + " LIKE " + modelTable + ";";
+//  var tableName = db + ".transaction_" + newIP;
+//  var modelTable = db + ".transaction_model";
+//  var sqlMake = "CREATE TABLE IF NOT EXISTS " + tableName + " LIKE " + modelTable + ";";
 //  var sqlGet = "SELECT * FROM " + tableName + ";";
-  var sqlGet = "select inventory.item, inventory.id, " + tableName + ".quantity, " + tableName + ".quantity * prices.prices AS total from benek020.inventory as inventory, " + tableName + ", benek020.prices as prices where inventory.id = " + tableName + ".ID and inventory.id = prices.id;";
-
+//  var sqlGet = "select inventory.item, inventory.id, " + tableName + ".quantity, " + tableName + ".quantity * prices.prices AS total from benek020.inventory as inventory, " + tableName + ", benek020.prices as prices where inventory.id = " + tableName + ".ID and inventory.id = prices.id;";
+    var sql = "SELECT currentTransId FROM " + db + ".users WHERE user=\"" + req.cookies.creds.user +     "\";";
 
     checkCookie(req)
     .then( function(results){
         if (results.length > 0){
-            query(sqlMake)
-            .then(query(sqlGet)
-            .then(function(results){ res.send(results); endPool;}))
+            query(sql)
+            .then(function(results){ 
+		var tid = results[0].currentTransId;
+		var sqlGet = "select inventory.item, inventory.id, COUNT(*) AS quantity, COUNT(*) * prices.prices AS total from "+db+".inventory, "+db+".prices, "+db+".button_pushes WHERE inventory.id=prices.id AND inventory.id=button_pushes.bid AND button_pushes.tid="+tid+" GROUP BY button_pushes.bid;";
+		query(sqlGet)
+            .then(function(results){ res.send(results); endPool;})})
         }else{
             res.send();
             }}
@@ -165,6 +174,28 @@ app.get("/login", function(req, res){
 	}
     });
 });
+
+app.get("/sale", function(req, res){
+  var total = req.param('total');  
+  var voided = req.param('voided');
+  var tidSql = "SELECT currentTransId FROM " + db + ".users WHERE user=\"" + req.cookies.creds.user + "\";";
+    
+
+    checkCookie(req)
+    .then(function(results){
+	if(results.length > 0){
+	   query(tidSql).then(function(result){
+		var tid = result[0].currentTransId;
+		var startSql = "select DATE_FORMAT(time, '%Y %m %d %T') from " + db + ".button_pushes where tid="+tid+" order by time asc limit 1;";
+		query(startSql).then(function(results){archiveTable(results, tid, req.cookies.creds.user, total, voided, res);});
+        });}});
+});
+
+var archiveTable= function(results, tid, user, total, voided, res){
+    var start = results[0].time;
+    var sql = "INSERT INTO "+db+".transactions VALUES ("+tid+", STR_TO_DATE(\""+start+"\", '%Y %m %d %T'), NOW(), \""+user+"\", "+total+", "+voided+");";
+     query(sql).then(function(results){ res.send(results); endPool; });
+}
 
 // Your other API handlers go here!
 
