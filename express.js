@@ -56,6 +56,7 @@ var checkCookie = function(req){
     
 }
 
+
 app.use(cookieParser());
 app.use(express.static(__dirname + '/public'));
 
@@ -186,7 +187,7 @@ app.get("/sale", function(req, res){
 	if(results.length > 0){
 	   query(tidSql).then(function(result){
 		var tid = result[0].currentTransId;
-		var startSql = "select DATE_FORMAT(time, '%Y %m %d %T') from " + db + ".button_pushes where tid="+tid+" order by time asc limit 1;";
+		var startSql = "select DATE_FORMAT(time, '%Y %m %d %T') as time from " + db + ".button_pushes where tid="+tid+" order by time asc limit 1;";
 		query(startSql).then(function(results){archiveTable(results, tid, req.cookies.creds.user, total, voided, res);});
         });}});
 });

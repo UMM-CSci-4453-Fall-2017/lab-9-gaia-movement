@@ -71,9 +71,21 @@ function ButtonCtrl($scope,buttonApi){
 		});
  }
 
+ function closeTrans($event, voided){
+    buttonApi.sale($scope.total, voided).success(
+        function(data){
+                refreshTrans();
+                refreshButtons();
+        }).error(function(){
+            $scope.errorMessage="Failed to close transaction";
+        });
+ }
+
   refreshButtons();  //make sure the buttons are loaded
   refreshTrans();
 }
+
+
 
 function buttonApi($http,apiUrl){
   return{
@@ -95,9 +107,12 @@ function buttonApi($http,apiUrl){
        return $http.get(url);
     },
     login: function(user, pass){
-	var url = apiUrl+'/login?user='+user+'&pass='+pass;
-	return $http.get(url);
+	    var url = apiUrl+'/login?user='+user+'&pass='+pass;
+	    return $http.get(url);
+    },
+    sale: function(total, voided){
+        var url = apiUrl+'/sale?total='+total+'&voided='+voided;
+        return $http.get(url);
     }
  };
 }
-
