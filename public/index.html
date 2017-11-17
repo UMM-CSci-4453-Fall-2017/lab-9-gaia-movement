@@ -19,7 +19,7 @@
        <div ng-repeat="button in buttons">
          <div style="position:absolute;left:{{button.left}}px;top:{{button.top}}px"><button id="{{button.buttonID}}" ng-click="buttonClick($event,'button.buttonID');" >{{button.label}}</button></div>
          </div>
-         <div style="position:fixed;height:50px;bottom:0px;left:0px;right:0px;margin-bottom:0px" ng-show="errorMessage != ''">
+         <div style="position:fixed;height:50px;bottom:20px;left:0px;right:0px;margin-bottom:20px" ng-show="errorMessage != ''">
            <div class="col-sm-12">
              <h3 class="text-danger">{{errorMessage}}</h3>
            </div>
@@ -43,8 +43,8 @@
 		</table>
         
         <div align="right" position="relative">
-            <button>Sale</button>
-            <button>Void</button>
+            <button ng-click="closeTrans($event, false)">Sale</button>
+            <button ng-click="closeTrans($event, true)">Void</button>
         </div>
 	 </div>
      </div>

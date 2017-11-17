@@ -14,6 +14,7 @@ function ButtonCtrl($scope,buttonApi){
    $scope.subOne = subOne;
    $scope.total = 0.0;
    $scope.login = login;
+   $scope.closeTrans = closeTrans;
 
    var loading = false;
 
@@ -72,8 +73,10 @@ function ButtonCtrl($scope,buttonApi){
  }
 
  function closeTrans($event, voided){
+    console.log("Closing a transaction");
     buttonApi.sale($scope.total, voided).success(
         function(data){
+		console.log("Successfully closed the transaction");
                 refreshTrans();
                 refreshButtons();
         }).error(function(){
@@ -102,7 +105,7 @@ function buttonApi($http,apiUrl){
       return $http.get(url);
     },
     clickItem: function(id){
-       var url = apiUrl+'/removeItem?id=' + id;
+       var url = apiUrl+'/removeItem?bid=' + id;
        console.log("attempting with url = " + url);
        return $http.get(url);
     },

@@ -133,20 +133,25 @@ app.get("/getTrans", function(req, res){
 });
 
 app.get("/removeItem", function(req, res){
-    var id = req.param('id');
-    var ip = req.ip;
-    var newIP = removeCol(ip);
-    var tablename = db + ".transaction_" + newIP;
-    var updateSql = "update " + tablename + " set quantity = quantity - 1 where ID = " + id + ";";
-    var deleteSql = "delete from " + tablename + " where quantity <= 0;";
+    var bid = req.param('bid');
+//    var ip = req.ip;
+//    var newIP = removeCol(ip);
+    var table = db + ".button_pushes";
+    var sql = "SELECT currentTransId FROM " + db + ".users WHERE user=\"" + req.cookies.creds.user +     "\";";
+//    var updateSql = "update " + tablename + " set quantity = quantity - 1 where ID = " + id + ";";
+//    var deleteSql = "delete from " + tablename + " where quantity <= 0;";
    // var SQL = updateSql + deleteSql;
 
     checkCookie(req)
     .then( function(results){
         if (results.length > 0){
-            query(updateSql)
-            .then(query(deleteSql)
-            .then(function(results){ res.send(results); endPool;}))
+            query(sql)
+	    .then(function(results){
+                  var tid = results[0].currentTransId;
+		  var deleteSql = "DELETE FROM "+table+" WHERE tid="+tid+" AND bid="+bid+" ORDER BY UNIX_TIMESTAMP(time) DESC LIMIT 1;";
+		  console.log(deleteSql);
+                  query(deleteSql)
+                 .then(function(results){ res.send(results); endPool;})})
         } else{
             res.send();
         }}
