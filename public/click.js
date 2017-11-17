@@ -15,6 +15,7 @@ function ButtonCtrl($scope,buttonApi){
    $scope.total = 0.0;
    $scope.login = login;
    $scope.closeTrans = closeTrans;
+   $scope.logout = logout;
 
    var loading = false;
 
@@ -84,6 +85,16 @@ function ButtonCtrl($scope,buttonApi){
         });
  }
 
+ function logout($event){
+	buttonApi.logout().success(
+		function(){
+ 			refreshTrans();
+			refreshButtons();
+		}).error(function(){ $scope.errorMessage="Failed to log out";
+		});
+
+ }
+
   refreshButtons();  //make sure the buttons are loaded
   refreshTrans();
 }
@@ -116,6 +127,10 @@ function buttonApi($http,apiUrl){
     sale: function(total, voided){
         var url = apiUrl+'/sale?total='+total+'&voided='+voided;
         return $http.get(url);
+    },
+    logout: function(){
+	var url = apiUrl+'/logout';
+	return $http.get(url);
     }
  };
 }

@@ -14,7 +14,9 @@
         <form >
         User <input type="text" name="user" id="user"> 
         Password<input type="password" name="pass" id="pass">
-        <button ng-click="login($event)">Login</button></form></div>
+        <button ng-click="login($event)">Login</button>
+	<button ng-click="logout($event)">Log out</button>
+	</form></div>
     <div id="buttons" >
        <div ng-repeat="button in buttons">
          <div style="position:absolute;left:{{button.left}}px;top:{{button.top}}px"><button id="{{button.buttonID}}" ng-click="buttonClick($event,'button.buttonID');" >{{button.label}}</button></div>

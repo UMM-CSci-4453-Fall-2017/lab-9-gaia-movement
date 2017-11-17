@@ -149,8 +149,8 @@ app.get("/removeItem", function(req, res){
 	    .then(function(results){
                   var tid = results[0].currentTransId;
 		  var deleteSql = "DELETE FROM "+table+" WHERE tid="+tid+" AND bid="+bid+" ORDER BY UNIX_TIMESTAMP(time) DESC LIMIT 1;";
-		  console.log(deleteSql);
-                  query(deleteSql)
+                  
+		 query(deleteSql)
                  .then(function(results){ res.send(results); endPool;})})
         } else{
             res.send();
@@ -179,6 +179,15 @@ app.get("/login", function(req, res){
 
 	}
     });
+});
+
+app.get("/logout", function(req, res){
+	var sql = "delete from "+db+".cookies WHERE hid="+req.cookies.creds.id+";";
+	query(sql).then(function(){
+			res.send();
+			endPool;
+		});
+
 });
 
 app.get("/sale", function(req, res){
