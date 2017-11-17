@@ -104,16 +104,31 @@ app.get("/click",function(req,res){
     );
 });
 
+app.get("/ticketize", function(req, res){
+var sql = "SELECT currentTransId FROM " + db + ".users WHERE user=\"" + req.cookies.creds.user +         "\";";
+ 
+     checkCookie(req)
+     .then( function(results){
+         if (results.length > 0){
+             query(sql)
+             .then(function(results){
+                 var tid = results[0].currentTransId;
+                 var sqlGet = "select inventory.item, inventory.id, COUNT(*) AS quantity, COUNT(*) * prices.prices AS total from "+db+".inventory, "+db+".prices, "+db+".button_pushes WHERE inventory.id=prices.id AND inventory.id=button_pushes.bid AND button_pushes.tid="+tid+" GROUP BY button_pushes.bid;    ";              
+                 query(sqlGet)
+             .then(function(results){
+		var ticket = [];
+		ticket[0] = results;
+		ticket[1] = "Total: $"+results.reduce(function(n, m){ return n + m.total; }, 0.0);
+		ticket[2] = "Time: "+Date.now(); 
+		res.send(ticket); endPool;})})
+         }else{
+             res.send();
+             }}
+     );  
+             
+ });
+
 app.get("/getTrans", function(req, res){
-//  var ip = req.ip;
-//  var newIP = removeCol(ip);
-  //console.log(ip);
-  //console.log(newIP);
-//  var tableName = db + ".transaction_" + newIP;
-//  var modelTable = db + ".transaction_model";
-//  var sqlMake = "CREATE TABLE IF NOT EXISTS " + tableName + " LIKE " + modelTable + ";";
-//  var sqlGet = "SELECT * FROM " + tableName + ";";
-//  var sqlGet = "select inventory.item, inventory.id, " + tableName + ".quantity, " + tableName + ".quantity * prices.prices AS total from benek020.inventory as inventory, " + tableName + ", benek020.prices as prices where inventory.id = " + tableName + ".ID and inventory.id = prices.id;";
     var sql = "SELECT currentTransId FROM " + db + ".users WHERE user=\"" + req.cookies.creds.user +     "\";";
 
     checkCookie(req)
